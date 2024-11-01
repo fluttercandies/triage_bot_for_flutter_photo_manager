@@ -54,7 +54,7 @@ body:
 
   ### Example code (optional)
 
-OUTPUT: 'Status: Need more info'
+OUTPUT: Status: Need more info
 </EXAMPLE>
 
 <EXAMPLE>
@@ -139,7 +139,7 @@ body:
         print('Code after setIgnorePermissionCheck');
     ```
 
-OUTPUT: 'Platform: Android', 'Sort: BUG'
+OUTPUT: Platform: Android, Sort: BUG
 </EXAMPLE>
 
 The issue to triage follows:
