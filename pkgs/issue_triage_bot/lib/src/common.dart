@@ -28,10 +28,10 @@ String get githubToken {
 }
 
 String get geminiKey {
-  final String? token = _envFileTokenOrEnvironment(key: 'GOOGLE_API_KEY');
+  final String? token = _envFileTokenOrEnvironment(key: 'GEMINI_API_KEY');
   if (token == null) {
     throw StateError('This tool expects a gemini api key in the '
-        'GOOGLE_API_KEY environment variable.');
+        'GEMINI_API_KEY environment variable.');
   }
   return token;
 }
