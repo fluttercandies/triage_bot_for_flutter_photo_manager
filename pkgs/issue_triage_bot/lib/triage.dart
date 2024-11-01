@@ -144,7 +144,7 @@ ${trimmedBody(comment.body ?? '')}
   final labelAdditions =
       filterLegalLabels(newLabels, allRepoLabels: allRepoLabels);
   if (labelAdditions.isNotEmpty) {
-    labelAdditions.add('triage-automation');
+    labelAdditions.add('Automation: triage');
   }
 
   // apply github labels
