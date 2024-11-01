@@ -135,7 +135,7 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('');
   logger.log(summary);
 
-  final comment = '**Summary:** $summary\n';
+  final comment = '**AI Summary:** $summary\n';
 
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
