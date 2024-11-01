@@ -23,7 +23,7 @@ void main(List<String> arguments) async {
     help: 'Make changes to the issue even if it already looks triaged.',
   );
   argParser.addFlag(
-    'production',
+    'release',
     negatable: false,
     help:
         'true: fluttercandies/flutter_photo_manager, false: fluttercandies/triage_bot_for_flutter_photo_manager',
