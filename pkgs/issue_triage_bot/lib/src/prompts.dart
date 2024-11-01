@@ -4,7 +4,6 @@ String assignAreaPrompt({
   String? lastComment,
 }) {
   return '''
-
 You are a software engineer on the FlutterCandies team.
 You are responsible for triaging incoming issues from users.
 With each issue, assign a label to represent the platform should be triaged into
@@ -172,6 +171,7 @@ For each issue, briefly summarize the issue $responseLimit.
 
 ${needsInfo ? needsMoreInfo : ''}
 
+If the body or title contains Chinese, you must use Chinese.
 The issue to triage follows:
 
 title: $title
