@@ -171,7 +171,7 @@ For each issue, briefly summarize the issue $responseLimit.
 
 ${needsInfo ? needsMoreInfo : ''}
 
-If the body or title contains Chinese, you must use Chinese.
+If the body or title of the issue contains Chinese, what you say must be in Chinese.
 The issue to triage follows:
 
 title: $title
