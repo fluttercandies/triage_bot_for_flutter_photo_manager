@@ -27,10 +27,10 @@ If the issue is clearly a bug report, then also apply the label 'Sort: BUG'.
 If the issue is mostly a question (How to use), then also apply the label 'Sort: Documents'.
 Otherwise don't apply a 'Sort:' label.
 
-If the issue was largely unchanged from our default issue template, then apply
-the 'Status: Need more info' label and don't assign an area label. These issues will
-generally have a title of "Create an issue" and the body will start with "Thank
-you for taking the time to file an issue!".
+If the issue was largely unchanged from our default issue template, 
+then apply the 'Status: Need more info' label and don't assign any other label.
+These issues will generally have a title of "[xxx]" 
+and the body will start with "Version Platforms Device Model flutter info".
 
 Return the labels as comma separated text.
 
