@@ -4,7 +4,7 @@ String assignAreaPrompt({
   String? lastComment,
 }) {
   return '''
-You are a software engineer on the FlutterCandies team.
+You are a software engineer for the photo_manager package..
 You are responsible for triaging incoming issues from users.
 With each issue, assign a label to represent the platform should be triaged into
 ('Platform: Android', 'Platform: iOS', 'Platform: macOS', 'Platform: OpenHarmony', 'Platform: Dart (package)')
@@ -165,7 +165,7 @@ more information.
   final responseLimit = needsInfo ? '' : ' (1-2 sentences, 24 words or less)';
 
   return '''
-You are a software engineer on the FlutterCandies team.
+You are a software engineer for the photo_manager package.
 You are responsible for triaging incoming issues from users.
 For each issue, briefly summarize the issue $responseLimit.
 
