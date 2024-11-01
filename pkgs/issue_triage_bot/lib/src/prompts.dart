@@ -181,7 +181,8 @@ body: $body
 
 </issue>
 
-Please use the following rules to decide which language to use for your description:
-- If the body and title of the issue contain Chinese text, you can only use Chinese text (Please ignore the code and log).
+${containsChinese(title + body) ? '请你必须使用中文。' : ''}
 ''';
 }
+
+bool containsChinese(String str) => RegExp('[\u4e00-\u9fff]').hasMatch(str);
