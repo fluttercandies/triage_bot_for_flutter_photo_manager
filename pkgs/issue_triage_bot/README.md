@@ -14,7 +14,7 @@ human would. This includes:
 This bot is generally triggered by a GitHub workflow listening for new issues
 on the `fluttercandies/flutter_photo_manager` repo.
 
-See https://github.comfluttercandies/flutter_photo_manager/blob/main/.github/workflows/issue-triage.yml.
+See https://github.com/fluttercandies/flutter_photo_manager/blob/main/.github/workflows/issue-triage.yml.
 
 ## Overview
 
