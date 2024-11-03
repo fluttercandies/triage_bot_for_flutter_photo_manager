@@ -83,6 +83,7 @@ void main(List<String> arguments) async {
     int.parse(issue),
     dryRun: dryRun,
     forceTriage: forceTriage,
+    isProductionRepo: release,
     githubService: githubService,
     geminiService: geminiService,
     logger: Logger(),
