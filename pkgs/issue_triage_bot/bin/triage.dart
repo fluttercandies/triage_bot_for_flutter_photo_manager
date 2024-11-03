@@ -57,12 +57,11 @@ void main(List<String> arguments) async {
   String issue = results.rest.first;
   final bool dryRun = results.flag('dry-run');
   final bool forceTriage = results.flag('force');
-  final bool production = results.flag('production');
+  final bool release = results.flag('release');
 
   // Accept either an issue number or a url (i.e.,
   // https://github.com/fluttercandies/flutter_photo_manager/issues/1215).
-  final String issueToken =
-      '${getRepositorySlug(production).toString()}/issues/';
+  final String issueToken = '${getRepositorySlug(release).toString()}/issues/';
   if (issue.contains(issueToken)) {
     issue = issue.substring(issue.indexOf(issueToken) + issueToken.length);
   }
