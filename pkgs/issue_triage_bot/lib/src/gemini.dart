@@ -4,8 +4,12 @@ import 'package:http/http.dart' as http;
 class GeminiService {
   // Possible values for models: gemini-1.5-pro-latest, gemini-1.5-flash-latest,
   // gemini-1.0-pro-latest, gemini-1.5-flash-exp-0827.
-  static const String classificationModel = 'models/gemini-1.5-flash-latest';
-  static const String summarizationModel = 'models/gemini-1.5-flash-latest';
+  //
+  // TODO(Amos): 目前 models/gemini-1.5-flash-latest 有些问题
+  // （https://discuss.ai.google.dev/t/solved-gemini-models-overloading-with-token-windows-of-less-than-20/49579/7）
+  //  临时换成 实验性的 gemini-exp-1114
+  static const String classificationModel = 'models/gemini-exp-1114';
+  static const String summarizationModel = 'models/gemini-exp-1114';
 
   final GenerativeModel _summarizeModel;
   final GenerativeModel _classifyModel;
