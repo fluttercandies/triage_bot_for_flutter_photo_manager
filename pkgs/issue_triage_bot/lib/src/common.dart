@@ -6,8 +6,9 @@ String? _envFileTokenOrEnvironment({required String key}) {
   final envFile = File('.env');
   if (envFile.existsSync()) {
     final env = <String, String>{};
-    for (final String line
-        in envFile.readAsLinesSync().map((line) => line.trim())) {
+    for (final String line in envFile.readAsLinesSync().map(
+      (line) => line.trim(),
+    )) {
       if (line.isEmpty || line.startsWith('#')) continue;
       final int split = line.indexOf('=');
       env[line.substring(0, split).trim()] = line.substring(split + 1).trim();
@@ -21,8 +22,10 @@ String? _envFileTokenOrEnvironment({required String key}) {
 String get githubToken {
   final String? token = _envFileTokenOrEnvironment(key: 'GITHUB_TOKEN');
   if (token == null) {
-    throw StateError('This tool expects a github access token in the '
-        'GITHUB_TOKEN environment variable.');
+    throw StateError(
+      'This tool expects a github access token in the '
+      'GITHUB_TOKEN environment variable.',
+    );
   }
   return token;
 }
@@ -30,8 +33,10 @@ String get githubToken {
 String get geminiKey {
   final String? token = _envFileTokenOrEnvironment(key: 'GEMINI_API_KEY');
   if (token == null) {
-    throw StateError('This tool expects a gemini api key in the '
-        'GEMINI_API_KEY environment variable.');
+    throw StateError(
+      'This tool expects a gemini api key in the '
+      'GEMINI_API_KEY environment variable.',
+    );
   }
   return token;
 }

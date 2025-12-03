@@ -18,19 +18,27 @@ class GithubService {
   }
 
   Future<List<IssueComment>> fetchIssueComments(
-      RepositorySlug slug, Issue issue) async {
+    RepositorySlug slug,
+    Issue issue,
+  ) async {
     return await _gitHub.issues
         .listCommentsByIssue(slug, issue.number)
         .toList();
   }
 
   Future createComment(
-      RepositorySlug sdkSlug, int issueNumber, String comment) async {
+    RepositorySlug sdkSlug,
+    int issueNumber,
+    String comment,
+  ) async {
     await _gitHub.issues.createComment(sdkSlug, issueNumber, comment);
   }
 
   Future addLabelsToIssue(
-      RepositorySlug sdkSlug, int issueNumber, List<String> newLabels) async {
+    RepositorySlug sdkSlug,
+    int issueNumber,
+    List<String> newLabels,
+  ) async {
     await _gitHub.issues.addLabelsToIssue(sdkSlug, issueNumber, newLabels);
   }
 }
@@ -40,45 +48,49 @@ Future<FetchIssuesResult> fetchIssues(
   required bool includeClosed,
   String? cursor,
 }) async {
-  final result = await _query(QueryOptions(
-    document: gql(_buildQueryString(
-      areaLabel,
-      cursor: cursor,
-      includeClosed: includeClosed,
-    )),
-    fetchPolicy: FetchPolicy.noCache,
-    parserFn: (data) {
-      final search = data['search'] as Map<String, dynamic>;
+  final result = await _query(
+    QueryOptions(
+      document: gql(
+        _buildQueryString(
+          areaLabel,
+          cursor: cursor,
+          includeClosed: includeClosed,
+        ),
+      ),
+      fetchPolicy: FetchPolicy.noCache,
+      parserFn: (data) {
+        final search = data['search'] as Map<String, dynamic>;
 
-      // parse issues
-      final edges = search['edges'] as List;
+        // parse issues
+        final edges = search['edges'] as List;
 
-      final issues = edges.map((data) {
-        final node = data['node'] as Map<String, dynamic>;
-        final labels = (node['labels']['edges'] as List).map((data) {
+        final issues = edges.map((data) {
           final node = data['node'] as Map<String, dynamic>;
-          return IssueLabel(name: node['name'] as String);
+          final labels = (node['labels']['edges'] as List).map((data) {
+            final node = data['node'] as Map<String, dynamic>;
+            return IssueLabel(name: node['name'] as String);
+          }).toList();
+
+          return Issue(
+            title: node['title'] as String,
+            number: node['number'] as int,
+            state: node['state'] as String,
+            bodyText: node['bodyText'] as String?,
+            labels: labels,
+          );
         }).toList();
 
-        return Issue(
-          title: node['title'] as String,
-          number: node['number'] as int,
-          state: node['state'] as String,
-          bodyText: node['bodyText'] as String?,
-          labels: labels,
+        // parse cursor
+        final pageInfo = search['pageInfo'] as Map<String, dynamic>;
+
+        return FetchIssuesResult(
+          cursor: pageInfo['endCursor'] as String?,
+          hasNext: pageInfo['hasNextPage'] as bool,
+          issues: issues,
         );
-      }).toList();
-
-      // parse cursor
-      final pageInfo = search['pageInfo'] as Map<String, dynamic>;
-
-      return FetchIssuesResult(
-        cursor: pageInfo['endCursor'] as String?,
-        hasNext: pageInfo['hasNextPage'] as bool,
-        issues: issues,
-      );
-    },
-  ));
+      },
+    ),
+  );
 
   return result.hasException ? throw result.exception! : result.parsedData!;
 }

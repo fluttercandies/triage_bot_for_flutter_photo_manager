@@ -11,23 +11,21 @@ class GeminiService {
   final GenerativeModel _summarizeModel;
   final GenerativeModel _classifyModel;
 
-  GeminiService({
-    required String apiKey,
-    required http.Client httpClient,
-  })  : _summarizeModel = GenerativeModel(
-          model: summarizationModel,
-          apiKey: apiKey,
-          generationConfig: GenerationConfig(temperature: 0.2),
-          httpClient: httpClient,
-        ),
-        _classifyModel = GenerativeModel(
-          // TODO(Amos): 之后有必要的话可以换成微调的模型（指定仓库的历史）
-          // model: 'tunedModels/autotune-triage-tuned-prompt-xxx',
-          model: classificationModel,
-          apiKey: apiKey,
-          generationConfig: GenerationConfig(temperature: 0.2),
-          httpClient: httpClient,
-        );
+  GeminiService({required String apiKey, required http.Client httpClient})
+    : _summarizeModel = GenerativeModel(
+        model: summarizationModel,
+        apiKey: apiKey,
+        generationConfig: GenerationConfig(temperature: 0.2),
+        httpClient: httpClient,
+      ),
+      _classifyModel = GenerativeModel(
+        // TODO(Amos): 之后有必要的话可以换成微调的模型（指定仓库的历史）
+        // model: 'tunedModels/autotune-triage-tuned-prompt-xxx',
+        model: classificationModel,
+        apiKey: apiKey,
+        generationConfig: GenerationConfig(temperature: 0.2),
+        httpClient: httpClient,
+      );
 
   /// Call the summarize model with the given prompt.
   ///

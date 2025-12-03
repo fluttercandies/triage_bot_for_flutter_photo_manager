@@ -74,10 +74,7 @@ void main(List<String> arguments) async {
   );
   final githubService = GithubService(github: github);
 
-  final geminiService = GeminiService(
-    apiKey: geminiKey,
-    httpClient: client,
-  );
+  final geminiService = GeminiService(apiKey: geminiKey, httpClient: client);
 
   await triage(
     int.parse(issue),

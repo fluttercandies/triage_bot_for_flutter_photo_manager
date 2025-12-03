@@ -10,10 +10,7 @@ import 'src/prompts.dart';
 
 RepositorySlug getRepositorySlug(bool isProductionRepo) => isProductionRepo
     ? RepositorySlug('fluttercandies', 'flutter_photo_manager')
-    : RepositorySlug(
-        'fluttercandies',
-        'triage_bot_for_flutter_photo_manager',
-      );
+    : RepositorySlug('fluttercandies', 'triage_bot_for_flutter_photo_manager');
 
 Future<void> triage(
   int issueNumber, {
@@ -40,8 +37,10 @@ Future<void> triage(
   }
   logger.log('"${issue.title}"');
   logger.log('');
-  final bodyLines =
-      issue.body.split('\n').where((l) => l.trim().isNotEmpty).toList();
+  final bodyLines = issue.body
+      .split('\n')
+      .where((l) => l.trim().isNotEmpty)
+      .toList();
   for (final line in bodyLines.take(4)) {
     logger.log(line);
   }
@@ -57,7 +56,8 @@ Future<void> triage(
     final comments = await githubService.fetchIssueComments(sdkSlug, issue);
     final comment = comments.last;
 
-    lastComment = '''
+    lastComment =
+        '''
 ---
 
 Here is the last comment on the issue (by user @${comment.user?.login}):
@@ -141,8 +141,10 @@ ${trimmedBody(comment.body ?? '')}
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
   final allRepoLabels = await githubService.getAllLabels(sdkSlug);
-  final labelAdditions =
-      filterLegalLabels(newLabels, allRepoLabels: allRepoLabels);
+  final labelAdditions = filterLegalLabels(
+    newLabels,
+    allRepoLabels: allRepoLabels,
+  );
   if (labelAdditions.isNotEmpty) {
     labelAdditions.add('Automation: triage');
   }
