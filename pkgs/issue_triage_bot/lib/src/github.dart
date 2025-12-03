@@ -34,7 +34,7 @@ class GithubService {
     await _gitHub.issues.createComment(sdkSlug, issueNumber, comment);
   }
 
-  Future addLabelsToIssue(
+  Future<void> addLabelsToIssue(
     RepositorySlug sdkSlug,
     int issueNumber,
     List<String> newLabels,
