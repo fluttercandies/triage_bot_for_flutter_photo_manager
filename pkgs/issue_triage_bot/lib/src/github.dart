@@ -41,6 +41,23 @@ class GithubService {
   ) async {
     await _gitHub.issues.addLabelsToIssue(sdkSlug, issueNumber, newLabels);
   }
+
+  /// Update the issue title
+  ///
+  /// - [slug]: Repository slug
+  /// - [issueNumber]: Issue number
+  /// - [title]: New title
+  Future<Issue> updateIssueTitle(
+    RepositorySlug slug,
+    int issueNumber,
+    String title,
+  ) async {
+    return await _gitHub.issues.edit(
+      slug,
+      issueNumber,
+      IssueRequest(title: title),
+    );
+  }
 }
 
 Future<FetchIssuesResult> fetchIssues(

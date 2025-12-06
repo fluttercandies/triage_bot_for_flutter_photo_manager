@@ -23,23 +23,19 @@ Future<void> triage(
 }) async {
   final sdkSlug = getRepositorySlug(isProductionRepo);
 
-  logger.log('Triaging $sdkSlug...');
-  logger.log('');
+  logger.log('Triaging $sdkSlug...\n');
 
   // retrieve the issue
   final issue = await githubService.fetchIssue(sdkSlug, issueNumber);
-  logger.log('## issue ${issue.htmlUrl}');
-  logger.log('');
-  final existingLabels = issue.labels.map((l) => l.name).toList();
+  logger.log('## issue ${issue.htmlUrl}\n');
+  final existingLabels = [for (final label in issue.labels) label.name];
   if (existingLabels.isNotEmpty) {
-    logger.log('labels: ${existingLabels.join(', ')}');
-    logger.log('');
+    logger.log('labels: ${existingLabels.join(', ')}\n');
   }
-  logger.log('"${issue.title}"');
-  logger.log('');
+  logger.log('"${issue.title}"\n');
   final bodyLines = issue.body
       .split('\n')
-      .where((l) => l.trim().isNotEmpty)
+      .where((line) => line.trim().isNotEmpty)
       .toList();
   for (final line in bodyLines.take(4)) {
     logger.log(line);
@@ -49,8 +45,7 @@ Future<void> triage(
   }
   logger.log('');
 
-  // If the issue has any comments, retrieve and include the last comment in the
-  // prompt.
+  /// If the issue has any comments, retrieve and include the last comment in the prompt.
   String? lastComment;
   if (issue.hasComments) {
     final comments = await githubService.fetchIssueComments(sdkSlug, issue);
@@ -66,78 +61,63 @@ ${trimmedBody(comment.body ?? '')}
 ''';
   }
 
-  // decide if we should triage
-  if (!forceTriage) {
-    if (issue.alreadyTriaged) {
-      logger.log('Exiting (issue is already triaged).');
-      return;
-    }
+  /// decide if we should triage
+  if (!forceTriage && issue.alreadyTriaged) {
+    logger.log('Exiting (issue is already triaged).');
+    return;
   }
 
   final String bodyTrimmed = trimmedBody(issue.body);
 
-  // ask for classification
-  List<String> newLabels;
-  try {
-    newLabels = await geminiService.classify(
+  /// ask for classification
+  final List<String> newLabels = await handleGemini(
+    () => geminiService.classify(
       assignAreaPrompt(
         title: issue.title,
         body: bodyTrimmed,
         lastComment: lastComment,
       ),
-    );
-  } on GenerativeAIException catch (e) {
-    // Failures here can include things like gemini safety issues, ...
-    stderr.writeln('gemini: $e');
-    exit(1);
-  }
+    ),
+  );
 
-  // If an issue already has a `Type:` label, we don't need to apply more.
+  /// If an issue already has a `Type:` label, we don't need to apply more.
   if (existingLabels.any((label) => label.startsWith('Type:'))) {
     newLabels.removeWhere((label) => label.startsWith('Type:'));
   }
 
-  // ask for the summary
-  String summary;
-  try {
-    summary = await geminiService.summarize(
+  /// ask for the summary
+  final String summary = await handleGemini(
+    () => geminiService.summarize(
       summarizeIssuePrompt(
         title: issue.title,
         body: bodyTrimmed,
         needsInfo: newLabels.contains('Status: Need more info'),
       ),
-    );
-  } on GenerativeAIException catch (e) {
-    // Failures here can include things like gemini safety issues, ...
-    stderr.writeln('gemini: $e');
-    exit(1);
-  }
+    ),
+  );
 
-  logger.log('## gemini summary');
-  logger.log('');
-  logger.log(summary);
-  logger.log('');
+  /// ask for the issue title
+  final String issueTitle = await handleGemini(
+    () => geminiService.summarize(
+      summarizeIssueTitlePrompt(title: issue.title, body: bodyTrimmed),
+    ),
+  );
 
-  logger.log('## gemini classification');
-  logger.log('');
-  logger.log(newLabels.toString());
-  logger.log('');
+  logger.log('## gemini issue title \n$issueTitle\n');
+  logger.log('## gemini summary \n$summary\n');
+  logger.log('## gemini classification \n${newLabels.toString()}\n');
 
   if (dryRun) {
     logger.log('Exiting (dry run mode - not applying changes).');
     return;
   }
 
-  // perform changes
-  logger.log('## github comment');
-  logger.log('');
-  logger.log('labels: $newLabels');
-  logger.log('');
-  logger.log(summary);
+  /// perform changes
+  logger.log('## github comment \nlabels: $newLabels\n$summary');
 
   final comment = '**AI Summary:** $summary\n';
 
-  // create github comment
+  /// create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
   final allRepoLabels = await githubService.getAllLabels(sdkSlug);
@@ -149,14 +129,15 @@ ${trimmedBody(comment.body ?? '')}
     labelAdditions.add('Automation: triage');
   }
 
-  // apply github labels
+  /// apply github labels
   if (newLabels.isNotEmpty) {
     await githubService.addLabelsToIssue(sdkSlug, issueNumber, labelAdditions);
   }
 
-  logger.log('');
-  logger.log('---');
-  logger.log('');
+  /// update github issue title
+  await githubService.updateIssueTitle(sdkSlug, issueNumber, issueTitle);
+
+  logger.log('\n---\n');
   logger.log('Triaged ${issue.htmlUrl}');
 }
 
@@ -169,4 +150,14 @@ List<String> filterLegalLabels(
     for (final String label in labels)
       if (validLabels.contains(label)) label,
   ]..sort();
+}
+
+Future<T> handleGemini<T>(Future<T> Function() action) async {
+  try {
+    return await action();
+  } on GenerativeAIException catch (e) {
+    // Failures here can include things like gemini safety issues, ...
+    stderr.writeln('Gemini: $e');
+    exit(1);
+  }
 }

@@ -1,5 +1,3 @@
-> Source: https://github.com/dart-lang/ecosystem
-
 ## What's this?
 
 A LLM based triage automation system for the `fluttercandies/flutter_photo_manager` repo. It processes
@@ -23,5 +21,10 @@ The general workflow of the tool is:
 - download the issue information (existing labels, title, first comment)
 - ask Gemini to summarize the issue (see [prompts](lib/src/prompts.dart))
 - ask Gemini to classify the issue (see [prompts](lib/src/prompts.dart))
+- ask Gemini to generate the issue title (see [prompts](lib/src/prompts.dart))
 - create a comment on the issue (`@github-bot`) with the summary;
-  apply any labels produced as part of the classification
+  apply any labels produced as part of the classification;
+  update the issue title
+
+
+> Source: https://github.com/dart-lang/ecosystem
