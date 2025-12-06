@@ -213,9 +213,8 @@ Here are a series of few-shot examples:
 
 <EXAMPLE>
 INPUT:
-title: [Bug report] setIgnorePermissionCheck
-
 body: 
+[Bug report] setIgnorePermissionCheck
   ### Version
     2.8.0
 
@@ -299,9 +298,8 @@ OUTPUT: [Bug report] setIgnorePermissionCheck in Android doesn't return a result
 
 The issue is as follows:
 
-title: $title
-
-body: $body
+body: $title
+$body
 ''';
 }
 
