@@ -28,68 +28,69 @@ void main(List<String> arguments) async {
     help:
         'true: fluttercandies/flutter_photo_manager, false: fluttercandies/triage_bot_for_flutter_photo_manager',
   );
-  argParser.addFlag(
-    'help',
-    abbr: 'h',
-    negatable: false,
-    help: 'Print this usage information.',
-  );
+  argParser.addFlag('help', abbr: 'h', negatable: false, help: 'Print this usage information.');
 
   final ArgResults results;
   try {
     results = argParser.parse(arguments);
   } on ArgParserException catch (e) {
-    print(e.message);
-    print('');
-    print(usage);
-    print('');
-    print(argParser.usage);
+    _printUsage(argParser, error: e.message);
     io.exit(64);
   }
 
   if (results.flag('help') || results.rest.isEmpty) {
-    print(usage);
-    print('');
-    print(argParser.usage);
+    _printUsage(argParser);
     io.exit(results.flag('help') ? 0 : 64);
   }
 
-  String issue = results.rest.first;
+  final String issue = results.rest.first;
   final bool dryRun = results.flag('dry-run');
   final bool forceTriage = results.flag('force');
   final bool release = results.flag('release');
-
-  // Accept either an issue number or a url (i.e.,
-  // https://github.com/fluttercandies/flutter_photo_manager/issues/1215).
-  final String issueToken = '${getRepositorySlug(release).toString()}/issues/';
-  if (issue.contains(issueToken)) {
-    issue = issue.substring(issue.indexOf(issueToken) + issueToken.length);
-  }
+  final int issueId = _extractIssueId(issue, release);
 
   final client = http.Client();
+  try {
+    final github = GitHub(auth: Authentication.withToken(githubToken), client: client);
+    final githubService = GithubService(github: github);
+    final geminiService = GeminiService(apiKey: geminiKey, httpClient: client);
 
-  final github = GitHub(
-    auth: Authentication.withToken(githubToken),
-    client: client,
-  );
-  final githubService = GithubService(github: github);
+    await triage(
+      issueId,
+      dryRun: dryRun,
+      forceTriage: forceTriage,
+      isProductionRepo: release,
+      githubService: githubService,
+      geminiService: geminiService,
+      logger: Logger(),
+    );
+  } finally {
+    client.close();
+  }
+}
 
-  final geminiService = GeminiService(apiKey: geminiKey, httpClient: client);
-
-  await triage(
-    int.parse(issue),
-    dryRun: dryRun,
-    forceTriage: forceTriage,
-    isProductionRepo: release,
-    githubService: githubService,
-    geminiService: geminiService,
-    logger: Logger(),
-  );
-
-  client.close();
+int _extractIssueId(String input, bool isRelease) {
+  // Accept either an issue number or a url (i.e.,
+  // https://github.com/fluttercandies/flutter_photo_manager/issues/1215).
+  final repoSlug = getRepositorySlug(isRelease).toString();
+  final issueToken = '$repoSlug/issues/';
+  if (input.contains(issueToken)) {
+    return int.parse(input.substring(input.indexOf(issueToken) + issueToken.length));
+  }
+  return int.parse(input);
 }
 
 const String usage = '''
 A tool to triage issues from https://github.com/fluttercandies/flutter_photo_manager.
 
 usage: dart bin/triage.dart [options] <issue>''';
+
+void _printUsage(ArgParser parser, {String? error}) {
+  if (error != null) {
+    print(error);
+    print('');
+  }
+  print(usage);
+  print('');
+  print(parser.usage);
+}

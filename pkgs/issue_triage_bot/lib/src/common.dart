@@ -6,9 +6,7 @@ String? _envFileTokenOrEnvironment({required String key}) {
   final envFile = File('.env');
   if (envFile.existsSync()) {
     final env = <String, String>{};
-    for (final String line in envFile.readAsLinesSync().map(
-      (line) => line.trim(),
-    )) {
+    for (final String line in envFile.readAsLinesSync().map((line) => line.trim())) {
       if (line.isEmpty || line.startsWith('#')) continue;
       final int split = line.indexOf('=');
       env[line.substring(0, split).trim()] = line.substring(split + 1).trim();
@@ -46,10 +44,10 @@ const bodyLengthLimit = 10 * 1024;
 
 /// The [body], truncated if larger than [bodyLengthLimit].
 String trimmedBody(String body) {
-  return body.length > bodyLengthLimit
-      ? body = body.substring(0, bodyLengthLimit)
-      : body;
+  return body.length > bodyLengthLimit ? body = body.substring(0, bodyLengthLimit) : body;
 }
+
+bool containsChinese(String str) => RegExp('[\u4e00-\u9fff]').hasMatch(str);
 
 class Logger {
   void log(String message) {

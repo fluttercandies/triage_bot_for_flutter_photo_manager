@@ -6,7 +6,9 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'src/common.dart';
 import 'src/gemini.dart';
 import 'src/github.dart';
-import 'src/prompts.dart';
+import 'src/prompts/assign_area_prompt.dart';
+import 'src/prompts/summarize_issue_prompt.dart';
+import 'src/prompts/summarize_issue_title_prompt.dart';
 
 RepositorySlug getRepositorySlug(bool isProductionRepo) => isProductionRepo
     ? RepositorySlug('fluttercandies', 'flutter_photo_manager')
@@ -33,10 +35,7 @@ Future<void> triage(
     logger.log('labels: ${existingLabels.join(', ')}\n');
   }
   logger.log('"${issue.title}"\n');
-  final bodyLines = issue.body
-      .split('\n')
-      .where((line) => line.trim().isNotEmpty)
-      .toList();
+  final bodyLines = issue.body.split('\n').where((line) => line.trim().isNotEmpty).toList();
   for (final line in bodyLines.take(4)) {
     logger.log(line);
   }
@@ -72,11 +71,7 @@ ${trimmedBody(comment.body ?? '')}
   /// ask for classification
   final List<String> newLabels = await handleGemini(
     () => geminiService.classify(
-      assignAreaPrompt(
-        title: issue.title,
-        body: bodyTrimmed,
-        lastComment: lastComment,
-      ),
+      assignAreaPrompt(title: issue.title, body: bodyTrimmed, lastComment: lastComment),
     ),
   );
 
@@ -98,9 +93,7 @@ ${trimmedBody(comment.body ?? '')}
 
   /// ask for the issue title
   final String issueTitle = await handleGemini(
-    () => geminiService.summarize(
-      summarizeIssueTitlePrompt(title: issue.title, body: bodyTrimmed),
-    ),
+    () => geminiService.summarize(summarizeIssueTitlePrompt(title: issue.title, body: bodyTrimmed)),
   );
 
   logger.log('## gemini issue title \n$issueTitle\n');
@@ -121,10 +114,7 @@ ${trimmedBody(comment.body ?? '')}
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
   final allRepoLabels = await githubService.getAllLabels(sdkSlug);
-  final labelAdditions = filterLegalLabels(
-    newLabels,
-    allRepoLabels: allRepoLabels,
-  );
+  final labelAdditions = filterLegalLabels(newLabels, allRepoLabels: allRepoLabels);
   if (labelAdditions.isNotEmpty) {
     labelAdditions.add('Automation: triage');
   }
@@ -141,10 +131,7 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('Triaged ${issue.htmlUrl}');
 }
 
-List<String> filterLegalLabels(
-  List<String> labels, {
-  required List<String> allRepoLabels,
-}) {
+List<String> filterLegalLabels(List<String> labels, {required List<String> allRepoLabels}) {
   final validLabels = allRepoLabels.toSet();
   return [
     for (final String label in labels)
