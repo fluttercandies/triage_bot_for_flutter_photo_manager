@@ -128,15 +128,16 @@ ${trimmedBody(comment.body ?? '')}
   await githubService.updateIssueTitle(sdkSlug, issueNumber, issueTitle);
 
   logger.log('\n---\n');
-  logger.log('Triaged ${issue.htmlUrl}');
+  logger.log('✅ Triaged ${issue.htmlUrl}');
+
+  logger.log('\n---\n');
 
   /// unsubscribe issue to avoid too many notifications
   try {
     await githubService.unsubscribeIssue(sdkSlug, issueNumber);
-    logger.log('\n---\n');
-    logger.log('Unsubscribed ${issue.htmlUrl}');
+    logger.log('✅ Unsubscribed ${issue.htmlUrl}');
   } catch (e) {
-    logger.log('Unsubscribe failed: $e');
+    logger.log('❌ Unsubscribe failed: $e');
   }
 }
 
@@ -153,7 +154,7 @@ Future<T> handleGemini<T>(Future<T> Function() action) async {
     return await action();
   } on GenerativeAIException catch (e) {
     // Failures here can include things like gemini safety issues, ...
-    stderr.writeln('Gemini: $e');
+    stderr.writeln('❌ Gemini: $e');
     exit(1);
   }
 }
