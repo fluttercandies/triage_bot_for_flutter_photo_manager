@@ -1,9 +1,16 @@
 import 'package:github/github.dart';
+import 'package:graphql/client.dart';
 
 class GithubService {
   GithubService({required GitHub github}) : _gitHub = github;
 
   final GitHub _gitHub;
+
+  late final AuthLink _graphQLAuth = AuthLink(getToken: () async => 'Bearer ${_gitHub.auth.token}');
+  late final GraphQLClient _graphQLClient = GraphQLClient(
+    link: _graphQLAuth.concat(HttpLink('https://api.github.com/graphql')),
+    cache: GraphQLCache(),
+  );
 
   Future<List<String>> getAllLabels(RepositorySlug repoSlug) async {
     final result = await _gitHub.issues.listLabels(repoSlug).toList();
@@ -37,6 +44,98 @@ class GithubService {
   /// - [title]: New title
   Future<Issue> updateIssueTitle(RepositorySlug slug, int issueNumber, String title) async {
     return _gitHub.issues.edit(slug, issueNumber, IssueRequest(title: title));
+  }
+
+  /// Get the subscription status of the issue
+  ///
+  /// https://docs.github.com/en/graphql/reference/interfaces#subscribable
+  ///
+  /// - [slug]: Repository slug
+  /// - [issueNumber]: Issue number
+  Future<
+    ({
+      ///  The Node ID of the Subscribable object.
+      String issueId,
+
+      /// Check if the viewer is able to change their subscription status for the repository.
+      bool viewerCanSubscribe,
+    })
+  >
+  getSubscriptionStatusOfIssue(RepositorySlug slug, int issueNumber) async {
+    const queryString = r'''
+query GetIssue($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      id
+      number
+      viewerCanSubscribe
+      viewerSubscription
+    }
+  }
+}
+''';
+
+    final result = await _graphQLClient.query(
+      QueryOptions(
+        document: gql(queryString),
+        variables: {'owner': slug.owner, 'repo': slug.name, 'number': issueNumber},
+        fetchPolicy: FetchPolicy.noCache,
+        parserFn: (data) {
+          final issueData = data['repository']?['issue'];
+          if (issueData == null) {
+            throw Exception('Issue not found');
+          }
+          return (
+            issueId: issueData['id'] as String,
+            viewerCanSubscribe: issueData['viewerCanSubscribe'] as bool,
+          );
+        },
+      ),
+    );
+    return result.hasException ? throw result.exception! : result.parsedData!;
+  }
+
+  /// Unsubscribe issue
+  ///
+  /// https://docs.github.com/en/graphql/reference/mutations#updatesubscription
+  ///
+  /// - [slug]: Repository slug
+  /// - [issueNumber]: Issue number
+  Future<bool> unsubscribeIssue(RepositorySlug slug, int issueNumber) async {
+    final (:issueId, :viewerCanSubscribe) = await getSubscriptionStatusOfIssue(slug, issueNumber);
+    if (!viewerCanSubscribe) {
+      throw Exception('Viewer cannot change subscription status for this issue');
+    }
+
+    final mutationString = r'''
+mutation UnsubscribeIssue($subscribableId: ID!) {
+  updateSubscription(input: {
+    subscribableId: $subscribableId,
+    state: UNSUBSCRIBED
+  }) {
+    subscribable {
+      id
+      viewerSubscription
+    }
+  }
+}
+''';
+
+    final result = await _graphQLClient.mutate(
+      MutationOptions(
+        document: gql(mutationString),
+        variables: {'subscribableId': issueId},
+        fetchPolicy: FetchPolicy.noCache,
+        parserFn: (data) {
+          final subscriptionData = data['updateSubscription']?['subscribable'];
+          if (subscriptionData == null) {
+            throw Exception('Failed to unsubscribe issue');
+          }
+          return subscriptionData['viewerSubscription'] == 'IGNORED';
+        },
+      ),
+    );
+    return result.hasException ? throw result.exception! : result.parsedData!;
   }
 }
 

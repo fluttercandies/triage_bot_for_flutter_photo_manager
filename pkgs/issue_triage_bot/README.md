@@ -14,6 +14,13 @@ on the `fluttercandies/flutter_photo_manager` repo.
 
 See https://github.com/fluttercandies/flutter_photo_manager/blob/main/.github/workflows/issue-triage.yml.
 
+## GitHub token permissions
+
+To allow the bot to triage issues and interact with the GitHub API, your GitHub token must have at least the following permissions:
+
+- **public_repo**: Required to read and write issues, labels, and comments in public repositories.
+- **notifications**: Required to read and manage notifications related to issues (used to mute notifications after triage to prevent excessive alerts).
+
 ## Overview
 
 The general workflow of the tool is:
