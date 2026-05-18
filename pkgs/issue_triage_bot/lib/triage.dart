@@ -131,10 +131,13 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('Triaged ${issue.htmlUrl}');
 
   /// unsubscribe issue to avoid too many notifications
-  await githubService.unsubscribeIssue(sdkSlug, issueNumber);
-
-  logger.log('\n---\n');
-  logger.log('Unsubscribed ${issue.htmlUrl}');
+  try {
+    await githubService.unsubscribeIssue(sdkSlug, issueNumber);
+    logger.log('\n---\n');
+    logger.log('Unsubscribed ${issue.htmlUrl}');
+  } catch (e) {
+    logger.log('Unsubscribe failed: $e');
+  }
 }
 
 List<String> filterLegalLabels(List<String> labels, {required List<String> allRepoLabels}) {
