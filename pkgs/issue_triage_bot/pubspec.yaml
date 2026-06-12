@@ -8,8 +8,8 @@ environment:
 
 dependencies:
   args: 2.7.0
-  github: 9.25.0
-  google_generative_ai: 0.4.7
+  github: 9.25.1
+  googleai_dart: 8.0.0
   http: 1.6.0
   graphql: 5.2.4
 

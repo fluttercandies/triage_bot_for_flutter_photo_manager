@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:github/github.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:googleai_dart/googleai_dart.dart';
 
 import 'src/common.dart';
 import 'src/gemini.dart';
@@ -152,7 +152,7 @@ List<String> filterLegalLabels(List<String> labels, {required List<String> allRe
 Future<T> handleGemini<T>(Future<T> Function() action) async {
   try {
     return await action();
-  } on GenerativeAIException catch (e) {
+  } on GoogleAIException catch (e) {
     // Failures here can include things like gemini safety issues, ...
     stderr.writeln('❌ Gemini: $e');
     exit(1);
