@@ -21,8 +21,19 @@ Future<void> triage(
   bool isProductionRepo = false,
   required GithubService githubService,
   required GeminiService geminiService,
+  required String geminiApiKey,
   required Logger logger,
 }) async {
+  Future<T> handleGemini<T>(Future<T> Function() action) async {
+    try {
+      return await action();
+    } on GoogleAIException catch (e) {
+      // Failures here can include things like gemini safety issues, ...
+      stderr.writeln('❌ Gemini: ${redactSensitiveText(e.toString(), apiKey: geminiApiKey)}');
+      exit(1);
+    }
+  }
+
   final sdkSlug = getRepositorySlug(isProductionRepo);
 
   logger.log('Triaging $sdkSlug...\n');
@@ -149,12 +160,22 @@ List<String> filterLegalLabels(List<String> labels, {required List<String> allRe
   ]..sort();
 }
 
-Future<T> handleGemini<T>(Future<T> Function() action) async {
-  try {
-    return await action();
-  } on GoogleAIException catch (e) {
-    // Failures here can include things like gemini safety issues, ...
-    stderr.writeln('❌ Gemini: $e');
-    exit(1);
+String redactSensitiveText(String text, {String? apiKey}) {
+  var redacted = text;
+  if (apiKey != null && apiKey.isNotEmpty) {
+    redacted = redacted.replaceAll(apiKey, '***');
   }
+
+  return redacted
+      .replaceAllMapped(
+        RegExp(r'([?&](?:key|api_key|access_token)=)([^&\s]+)', caseSensitive: false),
+        (match) => '${match[1]}***',
+      )
+      .replaceAllMapped(
+        RegExp(
+          r'((?:api[-_]?key|x-goog-api-key|authorization|bearer|token|access_token|secret)\s*[:=]\s*)([^,\s}\]]+)',
+          caseSensitive: false,
+        ),
+        (match) => '${match[1]}***',
+      );
 }

@@ -62,6 +62,7 @@ void main(List<String> arguments) async {
       isProductionRepo: release,
       githubService: githubService,
       geminiService: geminiService,
+      geminiApiKey: geminiKey,
       logger: Logger(),
     );
   } finally {
