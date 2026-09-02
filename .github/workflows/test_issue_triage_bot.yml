@@ -6,22 +6,23 @@ on:
     types:
       - opened
 
-# All permissions not specified are set to 'none'.
-permissions:
-  issues: write
+permissions: {}
 
 jobs:
   triage_issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
         with:
+          persist-credentials: false
           repository: fluttercandies/triage_bot_for_flutter_photo_manager
           ref: 'dev'
 
-      - uses: dart-lang/setup-dart@7654d458321ee25acccccfdb86cd48bd95768ff1
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d #v1.8.1
         with:
-          sdk: '3.11'
+          sdk: '3.13'
 
       - run: dart pub get
         working-directory: pkgs/issue_triage_bot
